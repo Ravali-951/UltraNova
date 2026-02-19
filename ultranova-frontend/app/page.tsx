@@ -32,11 +32,11 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("vision");
   const [darkMode, setDarkMode] = useState(true);
-  const [recentSearches, setRecentSearches] = useState<Array<{idea: string, timestamp: string}>>([]);
-    const [chatOpen, setChatOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([
-  { role: 'assistant', content: "👋 Hi! I'm your founder assistant. Ask me anything about your startup!" }
-]);
+  const [recentSearches, setRecentSearches] = useState<Array<{ idea: string, timestamp: string }>>([]);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([
+    { role: 'assistant', content: "👋 Hi! I'm your founder assistant. Ask me anything about your startup!" }
+  ]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
 
@@ -46,18 +46,18 @@ export default function Home() {
   const [clarity, setClarity] = useState("Clear ✓");
 
   useEffect(() => {
-  const saved = localStorage.getItem('recentSearches');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
-        setRecentSearches(parsed);
+    const saved = localStorage.getItem('recentSearches');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setRecentSearches(parsed);
+        }
+      } catch (e) {
+        console.error("Failed to parse recent searches", e);
       }
-    } catch (e) {
-      console.error("Failed to parse recent searches", e);
     }
-  }
-}, []);
+  }, []);
 
   // Theme classes based on darkMode
   const theme = {
@@ -79,292 +79,292 @@ export default function Home() {
     progressBg: darkMode ? "bg-white/10" : "bg-gray-200",
   };
 
-const analyze = () => {
-  setLoading(true);
-  
-  setTimeout(() => {
-    try {
-      const ideaLower = idea.toLowerCase();
-      
-      // Base confidence affected by clarity and personality
-      let baseConfidence = 75;
-      
-      // Adjust for clarity
-      if (clarity.includes("Clear")) baseConfidence += 10;
-      if (clarity.includes("Fuzzy")) baseConfidence += 0;
-      if (clarity.includes("Undefined")) baseConfidence -= 10;
-      
-      // Adjust for personality
-      if (personality === "Aggressive") baseConfidence += 5;
-      if (personality === "Conservative") baseConfidence -= 5;
-      
-      // Adjust for runway (more runway = more confidence)
-      const runwayNum = parseInt(runway) || 7;
-      baseConfidence += Math.floor(runwayNum / 3);
-      
-      // Cap at reasonable range
-      baseConfidence = Math.min(95, Math.max(40, baseConfidence));
-      
-      // Generate dynamic vision and decision based on idea
-      let visionText = "Build a focused solution for " + idea;
-      let confidenceScore = baseConfidence;
-      let decisionText = confidenceScore > 70 ? "Proceed" : "Pivot";
-      let decisionDesc = "";
-      
-      // Customize based on idea content
-      if (ideaLower.includes("ai") || ideaLower.includes("artificial")) {
-        visionText = "Democratize AI access for small businesses";
-        confidenceScore = Math.min(95, baseConfidence + 7);
-      } else if (ideaLower.includes("edu") || ideaLower.includes("learn") || ideaLower.includes("education")) {
-        visionText = "Revolutionize personalized learning through technology";
-        confidenceScore = Math.min(95, baseConfidence + 3);
-      } else if (ideaLower.includes("health") || ideaLower.includes("wellness") || ideaLower.includes("mental")) {
-        visionText = "Make mental wellness accessible to everyone";
-        confidenceScore = Math.min(95, baseConfidence + 10);
-      } else if (ideaLower.includes("food") || ideaLower.includes("restaurant")) {
-        visionText = "Connect local food lovers with unique dining experiences";
-        confidenceScore = Math.min(95, baseConfidence - 5);
-      }
-      
-      // Generate decision description based on settings
-      if (confidenceScore > 80) {
-        decisionDesc = `High confidence. ${personality} approach with ${clarity} product vision.`;
-      } else if (confidenceScore > 60) {
-        decisionDesc = `Moderate potential. Consider more validation given ${clarity} clarity.`;
-      } else {
-        decisionDesc = `Proceed with caution. ${personality} strategy may need adjustment.`;
-      }
-      
-      // Generate team scores based on idea and settings
-      let marketingScore = 70 + (personality === "Aggressive" ? 5 : personality === "Conservative" ? -5 : 0);
-      let salesScore = 70;
-      let productScore = clarity.includes("Clear") ? 85 : clarity.includes("Fuzzy") ? 70 : 55;
-      let techScore = runwayNum > 12 ? 90 : runwayNum > 6 ? 80 : 70;
-      let opsScore = 80;
-      
-      // Adjust based on idea type
-      if (ideaLower.includes("ai") || ideaLower.includes("tech")) {
-        techScore += 15;
-        marketingScore -= 5;
-      } else if (ideaLower.includes("edu")) {
-        productScore += 10;
-        salesScore += 5;
-      } else if (ideaLower.includes("health")) {
-        opsScore += 10;
-        productScore += 5;
-      }
-      
-      // Keep scores in range
-      marketingScore = Math.min(100, Math.max(30, marketingScore));
-      salesScore = Math.min(100, Math.max(30, salesScore));
-      productScore = Math.min(100, Math.max(30, productScore));
-      techScore = Math.min(100, Math.max(30, techScore));
-      opsScore = Math.min(100, Math.max(30, opsScore));
-      
-      setResult({
-        vision: visionText,
-        roadmap: {
-          now: ["Market research", "User interviews", "Build prototype"],
-          next: ["Launch MVP", "Get first 100 users", "Iterate based on feedback"],
-          later: ["Scale to new markets", "Series A funding", "Expand team"]
-        },
-        decision: {
-          chosen: decisionText,
-          confidence: confidenceScore / 100,
-          description: decisionDesc
-        },
-        teams: [
-          { name: "Marketing", score: marketingScore },
-          { name: "Sales", score: salesScore },
-          { name: "Product", score: productScore },
-          { name: "Tech", score: techScore },
-          { name: "Ops", score: opsScore }
-        ],
-        teamEvaluations: [
-          { name: "Marketing", score: Math.min(100, marketingScore + Math.floor(Math.random() * 10) - 5) },
-          { name: "Product", score: Math.min(100, productScore + Math.floor(Math.random() * 10) - 5) },
-          { name: "Operations", score: Math.min(100, opsScore + Math.floor(Math.random() * 10) - 5) },
-          { name: "Sales", score: Math.min(100, salesScore + Math.floor(Math.random() * 10) - 5) },
-          { name: "Tech", score: Math.min(100, techScore + Math.floor(Math.random() * 10) - 5) }
-        ],
-        metrics: {
-          decisionConfidence: confidenceScore,
-          teamConfidence: Math.round((marketingScore + salesScore + productScore + techScore + opsScore) / 5),
-          conflictMode: confidenceScore > 80 ? "ALIGNED" : confidenceScore > 60 ? "NEUTRAL" : "CAUTION",
-          hardTruths: Math.floor(Math.random() * 3)
+  const analyze = () => {
+    setLoading(true);
+
+    setTimeout(() => {
+      try {
+        const ideaLower = idea.toLowerCase();
+
+        // Base confidence affected by clarity and personality
+        let baseConfidence = 75;
+
+        // Adjust for clarity
+        if (clarity.includes("Clear")) baseConfidence += 10;
+        if (clarity.includes("Fuzzy")) baseConfidence += 0;
+        if (clarity.includes("Undefined")) baseConfidence -= 10;
+
+        // Adjust for personality
+        if (personality === "Aggressive") baseConfidence += 5;
+        if (personality === "Conservative") baseConfidence -= 5;
+
+        // Adjust for runway (more runway = more confidence)
+        const runwayNum = parseInt(runway) || 7;
+        baseConfidence += Math.floor(runwayNum / 3);
+
+        // Cap at reasonable range
+        baseConfidence = Math.min(95, Math.max(40, baseConfidence));
+
+        // Generate dynamic vision and decision based on idea
+        let visionText = "Build a focused solution for " + idea;
+        let confidenceScore = baseConfidence;
+        let decisionText = confidenceScore > 70 ? "Proceed" : "Pivot";
+        let decisionDesc = "";
+
+        // Customize based on idea content
+        if (ideaLower.includes("ai") || ideaLower.includes("artificial")) {
+          visionText = "Democratize AI access for small businesses";
+          confidenceScore = Math.min(95, baseConfidence + 7);
+        } else if (ideaLower.includes("edu") || ideaLower.includes("learn") || ideaLower.includes("education")) {
+          visionText = "Revolutionize personalized learning through technology";
+          confidenceScore = Math.min(95, baseConfidence + 3);
+        } else if (ideaLower.includes("health") || ideaLower.includes("wellness") || ideaLower.includes("mental")) {
+          visionText = "Make mental wellness accessible to everyone";
+          confidenceScore = Math.min(95, baseConfidence + 10);
+        } else if (ideaLower.includes("food") || ideaLower.includes("restaurant")) {
+          visionText = "Connect local food lovers with unique dining experiences";
+          confidenceScore = Math.min(95, baseConfidence - 5);
         }
-      });
-      saveSearch(idea);
-      
-    } catch (error) {
-      console.error("Analysis error:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, 1500);
-};
 
-const saveSearch = (searchedIdea: string) => {
-  if (!searchedIdea.trim()) return;
-  
-  const newSearch = {
-    idea: searchedIdea,
-    timestamp: new Date().toISOString()
+        // Generate decision description based on settings
+        if (confidenceScore > 80) {
+          decisionDesc = `High confidence. ${personality} approach with ${clarity} product vision.`;
+        } else if (confidenceScore > 60) {
+          decisionDesc = `Moderate potential. Consider more validation given ${clarity} clarity.`;
+        } else {
+          decisionDesc = `Proceed with caution. ${personality} strategy may need adjustment.`;
+        }
+
+        // Generate team scores based on idea and settings
+        let marketingScore = 70 + (personality === "Aggressive" ? 5 : personality === "Conservative" ? -5 : 0);
+        let salesScore = 70;
+        let productScore = clarity.includes("Clear") ? 85 : clarity.includes("Fuzzy") ? 70 : 55;
+        let techScore = runwayNum > 12 ? 90 : runwayNum > 6 ? 80 : 70;
+        let opsScore = 80;
+
+        // Adjust based on idea type
+        if (ideaLower.includes("ai") || ideaLower.includes("tech")) {
+          techScore += 15;
+          marketingScore -= 5;
+        } else if (ideaLower.includes("edu")) {
+          productScore += 10;
+          salesScore += 5;
+        } else if (ideaLower.includes("health")) {
+          opsScore += 10;
+          productScore += 5;
+        }
+
+        // Keep scores in range
+        marketingScore = Math.min(100, Math.max(30, marketingScore));
+        salesScore = Math.min(100, Math.max(30, salesScore));
+        productScore = Math.min(100, Math.max(30, productScore));
+        techScore = Math.min(100, Math.max(30, techScore));
+        opsScore = Math.min(100, Math.max(30, opsScore));
+
+        setResult({
+          vision: visionText,
+          roadmap: {
+            now: ["Market research", "User interviews", "Build prototype"],
+            next: ["Launch MVP", "Get first 100 users", "Iterate based on feedback"],
+            later: ["Scale to new markets", "Series A funding", "Expand team"]
+          },
+          decision: {
+            chosen: decisionText,
+            confidence: confidenceScore / 100,
+            description: decisionDesc
+          },
+          teams: [
+            { name: "Marketing", score: marketingScore },
+            { name: "Sales", score: salesScore },
+            { name: "Product", score: productScore },
+            { name: "Tech", score: techScore },
+            { name: "Ops", score: opsScore }
+          ],
+          teamEvaluations: [
+            { name: "Marketing", score: Math.min(100, marketingScore + Math.floor(Math.random() * 10) - 5) },
+            { name: "Product", score: Math.min(100, productScore + Math.floor(Math.random() * 10) - 5) },
+            { name: "Operations", score: Math.min(100, opsScore + Math.floor(Math.random() * 10) - 5) },
+            { name: "Sales", score: Math.min(100, salesScore + Math.floor(Math.random() * 10) - 5) },
+            { name: "Tech", score: Math.min(100, techScore + Math.floor(Math.random() * 10) - 5) }
+          ],
+          metrics: {
+            decisionConfidence: confidenceScore,
+            teamConfidence: Math.round((marketingScore + salesScore + productScore + techScore + opsScore) / 5),
+            conflictMode: confidenceScore > 80 ? "ALIGNED" : confidenceScore > 60 ? "NEUTRAL" : "CAUTION",
+            hardTruths: Math.floor(Math.random() * 3)
+          }
+        });
+        saveSearch(idea);
+
+      } catch (error) {
+        console.error("Analysis error:", error);
+      } finally {
+        setLoading(false);
+      }
+    }, 1500);
   };
-  
-  // Remove any existing entry with SAME idea (case insensitive)
-  const filtered = recentSearches.filter(
-    item => item.idea.toLowerCase() !== searchedIdea.toLowerCase()
-  );
-  
-  // Add new search at the beginning, keep only 8 total
-  const updatedSearches = [newSearch, ...filtered].slice(0, 8);
-  
-  setRecentSearches(updatedSearches);
-  localStorage.setItem('recentSearches', JSON.stringify(updatedSearches));
-};
 
-const sendChatMessage = async (message: string) => {
-  try {
-    // Load Puter.js if not already loaded
-    if (typeof window !== 'undefined' && !window.puter) {
-      await new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'https://js.puter.com/v2/';
-        script.async = true;
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
+  const saveSearch = (searchedIdea: string) => {
+    if (!searchedIdea.trim()) return;
 
-    // Check if Puter is available
-    if (!window.puter?.ai) {
-      throw new Error("Puter AI not available");
-    }
-
-    // Get response from Puter
-    const result = await window.puter.ai.chat(message, {
-      model: "gpt-4o-mini",
-      system: "You are a professional startup advisor. Give concise, practical advice. Keep responses under 3 sentences."
-    });
-    
-    // Extract the text - handle both string and object responses
-    let responseText = "";
-    if (typeof result === 'string') {
-      responseText = result;
-    } else if (result && typeof result === 'object') {
-      // Try to extract message from common response formats
-      responseText = result.message?.content || 
-                     result.choices?.[0]?.message?.content || 
-                     result.response || 
-                     result.text || 
-                     "Thanks for your question! Let me help with your startup.";
-    }
-    
-    return responseText;
-  } catch (error) {
-    console.error('Chat error:', error);
-    
-    // 100% WORKING FALLBACK - NO API NEEDED
-    const q = message.toLowerCase();
-    
-    const responses = {
-      cookie: "For a cookies startup: Start with 3 signature flavors. Test at local markets. Price at $3-5. Build Instagram presence daily. Partner with coffee shops.",
-      ai: "AI startup: Solve ONE specific problem. Use existing APIs for MVP. Your value is domain expertise, not the model. Focus on data moats.",
-      fintech: "Fintech: Compliance first. Start narrow (e.g., budgeting for freelancers). Partner with regulated bank. Security audits early.",
-      health: "Healthtech: Understand FDA path before coding. Pilot with one clinic. HIPAA mandatory. Sales cycles 12-18 months.",
-      edu: "EdTech: Teachers are users, admins buyers. Free for teachers, charge schools. Content quality > features. Partner with districts.",
-      saas: "SaaS: Find 10 paying customers before building. Focus on activation rate. Price based on value. $10k MRR before raising.",
-      market: "Market size: TAM = total market. SAM = you can reach. SOM = you can get. Be conservative.",
-      competitor: "List top 5 competitors. Find what they MISS. Be 10x better for ONE use case. Talk to their customers.",
-      fund: "Pre-seed: $100-500k angels. Seed: $1-3M VCs with traction. Series A: $5-15M proven model. Raise when you DON'T need it.",
-      runway: "Monthly burn = all expenses. Aim for 18 months minimum. Raise enough to reach next milestone.",
-      team: "Technical + business co-founder ideal. First 5 hires: attitude over experience. 4-year vesting with 1-year cliff.",
-      mvp: "MVP = simplest thing that delivers value. Launch in 4-6 weeks max. If longer, you're overbuilding."
+    const newSearch = {
+      idea: searchedIdea,
+      timestamp: new Date().toISOString()
     };
-    
-    for (const [key, value] of Object.entries(responses)) {
-      if (q.includes(key)) return value;
+
+    // Remove any existing entry with SAME idea (case insensitive)
+    const filtered = recentSearches.filter(
+      item => item.idea.toLowerCase() !== searchedIdea.toLowerCase()
+    );
+
+    // Add new search at the beginning, keep only 8 total
+    const updatedSearches = [newSearch, ...filtered].slice(0, 8);
+
+    setRecentSearches(updatedSearches);
+    localStorage.setItem('recentSearches', JSON.stringify(updatedSearches));
+  };
+
+  const sendChatMessage = async (message: string) => {
+    try {
+      // Load Puter.js if not already loaded
+      if (typeof window !== 'undefined' && !window.puter) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://js.puter.com/v2/';
+          script.async = true;
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      // Check if Puter is available
+      if (!window.puter?.ai) {
+        throw new Error("Puter AI not available");
+      }
+
+      // Get response from Puter
+      const result = await window.puter.ai.chat(message, {
+        model: "gpt-4o-mini",
+        system: "You are a professional startup advisor. Give concise, practical advice. Keep responses under 3 sentences."
+      });
+
+      // Extract the text - handle both string and object responses
+      let responseText = "";
+      if (typeof result === 'string') {
+        responseText = result;
+      } else if (result && typeof result === 'object') {
+        // Try to extract message from common response formats
+        responseText = result.message?.content ||
+          result.choices?.[0]?.message?.content ||
+          result.response ||
+          result.text ||
+          "Thanks for your question! Let me help with your startup.";
+      }
+
+      return responseText;
+    } catch (error) {
+      console.error('Chat error:', error);
+
+      // 100% WORKING FALLBACK - NO API NEEDED
+      const q = message.toLowerCase();
+
+      const responses = {
+        cookie: "For a cookies startup: Start with 3 signature flavors. Test at local markets. Price at $3-5. Build Instagram presence daily. Partner with coffee shops.",
+        ai: "AI startup: Solve ONE specific problem. Use existing APIs for MVP. Your value is domain expertise, not the model. Focus on data moats.",
+        fintech: "Fintech: Compliance first. Start narrow (e.g., budgeting for freelancers). Partner with regulated bank. Security audits early.",
+        health: "Healthtech: Understand FDA path before coding. Pilot with one clinic. HIPAA mandatory. Sales cycles 12-18 months.",
+        edu: "EdTech: Teachers are users, admins buyers. Free for teachers, charge schools. Content quality > features. Partner with districts.",
+        saas: "SaaS: Find 10 paying customers before building. Focus on activation rate. Price based on value. $10k MRR before raising.",
+        market: "Market size: TAM = total market. SAM = you can reach. SOM = you can get. Be conservative.",
+        competitor: "List top 5 competitors. Find what they MISS. Be 10x better for ONE use case. Talk to their customers.",
+        fund: "Pre-seed: $100-500k angels. Seed: $1-3M VCs with traction. Series A: $5-15M proven model. Raise when you DON'T need it.",
+        runway: "Monthly burn = all expenses. Aim for 18 months minimum. Raise enough to reach next milestone.",
+        team: "Technical + business co-founder ideal. First 5 hires: attitude over experience. 4-year vesting with 1-year cliff.",
+        mvp: "MVP = simplest thing that delivers value. Launch in 4-6 weeks max. If longer, you're overbuilding."
+      };
+
+      for (const [key, value] of Object.entries(responses)) {
+        if (q.includes(key)) return value;
+      }
+
+      return "I can help with: 🍪 Food startups, 🤖 AI, 💰 Fintech, 🏥 Healthtech, 📚 EdTech, 💻 SaaS, 📊 Market size, 🏆 Competitors, 💵 Fundraising, ⏱️ Runway, 👥 Team building, 🛠️ MVP. What interests you?";
     }
-    
-    return "I can help with: 🍪 Food startups, 🤖 AI, 💰 Fintech, 🏥 Healthtech, 📚 EdTech, 💻 SaaS, 📊 Market size, 🏆 Competitors, 💵 Fundraising, ⏱️ Runway, 👥 Team building, 🛠️ MVP. What interests you?";
-  }
-};
+  };
 
-const handleSendMessage = async () => {
-  if (!chatInput.trim()) return;
-  
-  const userMessage = chatInput;
-  setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
-  setChatInput('');
-  setChatLoading(true);
-  
-  const aiResponse = await sendChatMessage(userMessage);
-  
-  setChatMessages(prev => [...prev, { 
-    role: 'assistant', 
-    content: aiResponse 
-  }]);
-  setChatLoading(false);
-};
+  const handleSendMessage = async () => {
+    if (!chatInput.trim()) return;
 
-// Helper functions for dynamic stats
-const getMarketSize = (idea: string) => {
-  const ideaLower = idea.toLowerCase();
-  if (ideaLower.includes("ai") || ideaLower.includes("artificial")) return "$5.2B";
-  if (ideaLower.includes("edu") || ideaLower.includes("learn")) return "$2.8B";
-  if (ideaLower.includes("health") || ideaLower.includes("wellness")) return "$4.1B";
-  if (ideaLower.includes("food") || ideaLower.includes("restaurant")) return "$3.2B";
-  if (ideaLower.includes("fin") || ideaLower.includes("bank")) return "$7.5B";
-  if (ideaLower.includes("game") || ideaLower.includes("gaming")) return "$1.9B";
-  if (ideaLower.includes("social") || ideaLower.includes("community")) return "$3.6B";
-  return "$2.4B"; // default
-};
+    const userMessage = chatInput;
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setChatInput('');
+    setChatLoading(true);
 
-const getCompetitors = (idea: string) => {
-  const ideaLower = idea.toLowerCase();
-  if (ideaLower.includes("ai") || ideaLower.includes("artificial")) return "24";
-  if (ideaLower.includes("edu") || ideaLower.includes("learn")) return "15";
-  if (ideaLower.includes("health") || ideaLower.includes("wellness")) return "18";
-  if (ideaLower.includes("food") || ideaLower.includes("restaurant")) return "32";
-  if (ideaLower.includes("fin") || ideaLower.includes("bank")) return "28";
-  if (ideaLower.includes("game") || ideaLower.includes("gaming")) return "42";
-  if (ideaLower.includes("social") || ideaLower.includes("community")) return "22";
-  return "12"; // default
-};
+    const aiResponse = await sendChatMessage(userMessage);
 
-const getGrowthRate = (idea: string) => {
-  const ideaLower = idea.toLowerCase();
-  if (ideaLower.includes("ai") || ideaLower.includes("artificial")) return "32%";
-  if (ideaLower.includes("edu") || ideaLower.includes("learn")) return "18%";
-  if (ideaLower.includes("health") || ideaLower.includes("wellness")) return "22%";
-  if (ideaLower.includes("food") || ideaLower.includes("restaurant")) return "12%";
-  if (ideaLower.includes("fin") || ideaLower.includes("bank")) return "15%";
-  if (ideaLower.includes("game") || ideaLower.includes("gaming")) return "24%";
-  if (ideaLower.includes("social") || ideaLower.includes("community")) return "28%";
-  return "18%"; // default
-};
+    setChatMessages(prev => [...prev, {
+      role: 'assistant',
+      content: aiResponse
+    }]);
+    setChatLoading(false);
+  };
 
-const getTimeToMarket = (runway: number, clarity: string, personality: string) => {
-  // Base time depends on runway
-  let months = Math.max(3, Math.min(12, Math.floor(runway / 2)));
-  
-  // Adjust based on clarity
-  if (clarity.includes("Clear")) months -= 1;
-  if (clarity.includes("Fuzzy")) months += 1;
-  if (clarity.includes("Undefined")) months += 2;
-  
-  // Adjust based on personality
-  if (personality === "Aggressive") months -= 1;
-  if (personality === "Conservative") months += 1;
-  
-  // Keep within reasonable range
-  months = Math.max(2, Math.min(12, months));
-  
-  return `${months} mo`;
-};
+  // Helper functions for dynamic stats
+  const getMarketSize = (idea: string) => {
+    const ideaLower = idea.toLowerCase();
+    if (ideaLower.includes("ai") || ideaLower.includes("artificial")) return "$5.2B";
+    if (ideaLower.includes("edu") || ideaLower.includes("learn")) return "$2.8B";
+    if (ideaLower.includes("health") || ideaLower.includes("wellness")) return "$4.1B";
+    if (ideaLower.includes("food") || ideaLower.includes("restaurant")) return "$3.2B";
+    if (ideaLower.includes("fin") || ideaLower.includes("bank")) return "$7.5B";
+    if (ideaLower.includes("game") || ideaLower.includes("gaming")) return "$1.9B";
+    if (ideaLower.includes("social") || ideaLower.includes("community")) return "$3.6B";
+    return "$2.4B"; // default
+  };
+
+  const getCompetitors = (idea: string) => {
+    const ideaLower = idea.toLowerCase();
+    if (ideaLower.includes("ai") || ideaLower.includes("artificial")) return "24";
+    if (ideaLower.includes("edu") || ideaLower.includes("learn")) return "15";
+    if (ideaLower.includes("health") || ideaLower.includes("wellness")) return "18";
+    if (ideaLower.includes("food") || ideaLower.includes("restaurant")) return "32";
+    if (ideaLower.includes("fin") || ideaLower.includes("bank")) return "28";
+    if (ideaLower.includes("game") || ideaLower.includes("gaming")) return "42";
+    if (ideaLower.includes("social") || ideaLower.includes("community")) return "22";
+    return "12"; // default
+  };
+
+  const getGrowthRate = (idea: string) => {
+    const ideaLower = idea.toLowerCase();
+    if (ideaLower.includes("ai") || ideaLower.includes("artificial")) return "32%";
+    if (ideaLower.includes("edu") || ideaLower.includes("learn")) return "18%";
+    if (ideaLower.includes("health") || ideaLower.includes("wellness")) return "22%";
+    if (ideaLower.includes("food") || ideaLower.includes("restaurant")) return "12%";
+    if (ideaLower.includes("fin") || ideaLower.includes("bank")) return "15%";
+    if (ideaLower.includes("game") || ideaLower.includes("gaming")) return "24%";
+    if (ideaLower.includes("social") || ideaLower.includes("community")) return "28%";
+    return "18%"; // default
+  };
+
+  const getTimeToMarket = (runway: number, clarity: string, personality: string) => {
+    // Base time depends on runway
+    let months = Math.max(3, Math.min(12, Math.floor(runway / 2)));
+
+    // Adjust based on clarity
+    if (clarity.includes("Clear")) months -= 1;
+    if (clarity.includes("Fuzzy")) months += 1;
+    if (clarity.includes("Undefined")) months += 2;
+
+    // Adjust based on personality
+    if (personality === "Aggressive") months -= 1;
+    if (personality === "Conservative") months += 1;
+
+    // Keep within reasonable range
+    months = Math.max(2, Math.min(12, months));
+
+    return `${months} mo`;
+  };
 
   return (
     <div className={`min-h-screen ${theme.bg} ${theme.text} font-sans antialiased relative overflow-hidden transition-colors duration-300`}>
@@ -387,9 +387,9 @@ const getTimeToMarket = (runway: number, clarity: string, personality: string) =
           <span className="text-xl font-semibold">UltraNova</span>
           <span className={`text-xl font-semibold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>FOUNDER OS</span>
         </div>
-        
+
         {/* Theme Toggle Button */}
-        <button 
+        <button
           onClick={() => setDarkMode(!darkMode)}
           className={`px-5 py-2 rounded-full ${theme.cardBg} ${theme.cardBorder} backdrop-blur-sm hover:bg-opacity-20 transition text-sm flex items-center gap-2`}
         >
@@ -424,13 +424,13 @@ const getTimeToMarket = (runway: number, clarity: string, personality: string) =
               placeholder="e.g., Education Platform"
               className={`flex-1 bg-transparent outline-none ${theme.text} placeholder:${theme.textMutedLighter}`}
             />
-           <button
-  onClick={analyze}  // ← analyze() should ONLY be here
-  disabled={loading}
-  className="ml-4 px-6 py-2 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:opacity-90 transition disabled:opacity-50 text-white font-medium whitespace-nowrap"
->
-  {loading ? "Analyzing..." : "Analyze →"}
-</button>
+            <button
+              onClick={analyze}  // ← analyze() should ONLY be here
+              disabled={loading}
+              className="ml-4 px-6 py-2 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:opacity-90 transition disabled:opacity-50 text-white font-medium whitespace-nowrap"
+            >
+              {loading ? "Analyzing..." : "Analyze →"}
+            </button>
           </div>
 
           {/* Example suggestion */}
@@ -445,23 +445,23 @@ const getTimeToMarket = (runway: number, clarity: string, personality: string) =
               Advanced Settings
             </div>
             <div className="flex flex-wrap items-center gap-4">
-      {/* PERSONALITY - Fixed Version */}
-<div className={`flex items-center gap-2 ${theme.cardBg} ${theme.cardBorder} rounded-full px-4 py-2 backdrop-blur-sm`}>
-  <span className={`${theme.textMuted} text-xs`}>PERSONALITY</span>
-  <div className="relative inline-block">
-    <select
-      value={personality}
-      onChange={(e) => setPersonality(e.target.value)}
-      className="appearance-none bg-transparent outline-none text-sm pr-6 cursor-pointer"
-      style={{ color: darkMode ? 'white' : 'black' }}
-    >
-      <option value="Aggressive" style={{ backgroundColor: darkMode ? '#0a0a1a' : '#f9fafb', color: darkMode ? 'white' : 'black' }}>Aggressive</option>
-      <option value="Balanced" style={{ backgroundColor: darkMode ? '#0a0a1a' : '#f9fafb', color: darkMode ? 'white' : 'black' }}>Balanced</option>
-      <option value="Conservative" style={{ backgroundColor: darkMode ? '#0a0a1a' : '#f9fafb', color: darkMode ? 'white' : 'black' }}>Conservative</option>
-    </select>
-    <ChevronDown className={`absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 ${theme.textMuted} pointer-events-none`} />
-  </div>
-</div>
+              {/* PERSONALITY - Fixed Version */}
+              <div className={`flex items-center gap-2 ${theme.cardBg} ${theme.cardBorder} rounded-full px-4 py-2 backdrop-blur-sm`}>
+                <span className={`${theme.textMuted} text-xs`}>PERSONALITY</span>
+                <div className="relative inline-block">
+                  <select
+                    value={personality}
+                    onChange={(e) => setPersonality(e.target.value)}
+                    className="appearance-none bg-transparent outline-none text-sm pr-6 cursor-pointer"
+                    style={{ color: darkMode ? 'white' : 'black' }}
+                  >
+                    <option value="Aggressive" style={{ backgroundColor: darkMode ? '#0a0a1a' : '#f9fafb', color: darkMode ? 'white' : 'black' }}>Aggressive</option>
+                    <option value="Balanced" style={{ backgroundColor: darkMode ? '#0a0a1a' : '#f9fafb', color: darkMode ? 'white' : 'black' }}>Balanced</option>
+                    <option value="Conservative" style={{ backgroundColor: darkMode ? '#0a0a1a' : '#f9fafb', color: darkMode ? 'white' : 'black' }}>Conservative</option>
+                  </select>
+                  <ChevronDown className={`absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 ${theme.textMuted} pointer-events-none`} />
+                </div>
+              </div>
 
               {/* RUNWAY (MONTHS) */}
               <div className={`flex items-center gap-2 ${theme.cardBg} ${theme.cardBorder} rounded-full px-4 py-2 backdrop-blur-sm`}>
@@ -476,20 +476,20 @@ const getTimeToMarket = (runway: number, clarity: string, personality: string) =
               </div>
 
               {/* PRODUCT CLARITY */}
-<div className={`flex items-center gap-2 ${theme.cardBg} ${theme.cardBorder} rounded-full px-4 py-2 backdrop-blur-sm`}>
-  <span className={`${theme.textMuted} text-xs`}>PRODUCT CLARITY</span>
-  <select
-    value={clarity}
-    onChange={(e) => setClarity(e.target.value)}
-    className={`bg-transparent outline-none ${theme.text} text-sm [&>option]:bg-[#0a0a1a] [&>option]:text-white`}
-    style={{ color: darkMode ? 'white' : 'black' }}
-  >
-    <option value="Clear ✓" className={darkMode ? 'bg-[#0a0a1a] text-white' : 'bg-white text-black'}>Clear ✓</option>
-    <option value="Fuzzy" className={darkMode ? 'bg-[#0a0a1a] text-white' : 'bg-white text-black'}>Fuzzy</option>
-    <option value="Undefined" className={darkMode ? 'bg-[#0a0a1a] text-white' : 'bg-white text-black'}>Undefined</option>
-  </select>
-  <span className={`${theme.textMutedLighter} text-xs`}>Product direction is defined</span>
-</div>
+              <div className={`flex items-center gap-2 ${theme.cardBg} ${theme.cardBorder} rounded-full px-4 py-2 backdrop-blur-sm`}>
+                <span className={`${theme.textMuted} text-xs`}>PRODUCT CLARITY</span>
+                <select
+                  value={clarity}
+                  onChange={(e) => setClarity(e.target.value)}
+                  className={`bg-transparent outline-none ${theme.text} text-sm [&>option]:bg-[#0a0a1a] [&>option]:text-white`}
+                  style={{ color: darkMode ? 'white' : 'black' }}
+                >
+                  <option value="Clear ✓" className={darkMode ? 'bg-[#0a0a1a] text-white' : 'bg-white text-black'}>Clear ✓</option>
+                  <option value="Fuzzy" className={darkMode ? 'bg-[#0a0a1a] text-white' : 'bg-white text-black'}>Fuzzy</option>
+                  <option value="Undefined" className={darkMode ? 'bg-[#0a0a1a] text-white' : 'bg-white text-black'}>Undefined</option>
+                </select>
+                <span className={`${theme.textMutedLighter} text-xs`}>Product direction is defined</span>
+              </div>
             </div>
           </div>
         </div>
@@ -540,44 +540,44 @@ const getTimeToMarket = (runway: number, clarity: string, personality: string) =
               />
             </div>
 
-{/* Quick Stats Row */}
-<div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-  {/* Market Size */}
-  <div className={`p-4 ${theme.cardBg} ${theme.cardBorder} rounded-xl text-center backdrop-blur-sm`}>
-    <div className={`text-xs ${theme.textMuted} mb-1`}>Market Size</div>
-    <div className="text-xl font-bold text-green-400">
-      {idea.trim() === "" ? "$0" : getMarketSize(idea)}
-    </div>
-    <div className={`text-xs ${theme.textMutedLighter} mt-1`}>TAM</div>
-  </div>
-  
-  {/* Competitors */}
-  <div className={`p-4 ${theme.cardBg} ${theme.cardBorder} rounded-xl text-center backdrop-blur-sm`}>
-    <div className={`text-xs ${theme.textMuted} mb-1`}>Competitors</div>
-    <div className="text-xl font-bold text-yellow-400">
-      {idea.trim() === "" ? "0" : getCompetitors(idea)}
-    </div>
-    <div className={`text-xs ${theme.textMutedLighter} mt-1`}>Direct</div>
-  </div>
-  
-  {/* Growth Rate */}
-  <div className={`p-4 ${theme.cardBg} ${theme.cardBorder} rounded-xl text-center backdrop-blur-sm`}>
-    <div className={`text-xs ${theme.textMuted} mb-1`}>Growth Rate</div>
-    <div className="text-xl font-bold text-green-400">
-      {idea.trim() === "" ? "0%" : getGrowthRate(idea)}
-    </div>
-    <div className={`text-xs ${theme.textMutedLighter} mt-1`}>YoY</div>
-  </div>
-  
-  {/* Time to Market */}
-  <div className={`p-4 ${theme.cardBg} ${theme.cardBorder} rounded-xl text-center backdrop-blur-sm`}>
-    <div className={`text-xs ${theme.textMuted} mb-1`}>Time to Market</div>
-    <div className="text-xl font-bold text-indigo-400">
-      {idea.trim() === "" ? "0 mo" : getTimeToMarket(parseInt(runway), clarity, personality)}
-    </div>
-    <div className={`text-xs ${theme.textMutedLighter} mt-1`}>MVP ready</div>
-  </div>
-</div>
+            {/* Quick Stats Row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+              {/* Market Size */}
+              <div className={`p-4 ${theme.cardBg} ${theme.cardBorder} rounded-xl text-center backdrop-blur-sm`}>
+                <div className={`text-xs ${theme.textMuted} mb-1`}>Market Size</div>
+                <div className="text-xl font-bold text-green-400">
+                  {idea.trim() === "" ? "$0" : getMarketSize(idea)}
+                </div>
+                <div className={`text-xs ${theme.textMutedLighter} mt-1`}>TAM</div>
+              </div>
+
+              {/* Competitors */}
+              <div className={`p-4 ${theme.cardBg} ${theme.cardBorder} rounded-xl text-center backdrop-blur-sm`}>
+                <div className={`text-xs ${theme.textMuted} mb-1`}>Competitors</div>
+                <div className="text-xl font-bold text-yellow-400">
+                  {idea.trim() === "" ? "0" : getCompetitors(idea)}
+                </div>
+                <div className={`text-xs ${theme.textMutedLighter} mt-1`}>Direct</div>
+              </div>
+
+              {/* Growth Rate */}
+              <div className={`p-4 ${theme.cardBg} ${theme.cardBorder} rounded-xl text-center backdrop-blur-sm`}>
+                <div className={`text-xs ${theme.textMuted} mb-1`}>Growth Rate</div>
+                <div className="text-xl font-bold text-green-400">
+                  {idea.trim() === "" ? "0%" : getGrowthRate(idea)}
+                </div>
+                <div className={`text-xs ${theme.textMutedLighter} mt-1`}>YoY</div>
+              </div>
+
+              {/* Time to Market */}
+              <div className={`p-4 ${theme.cardBg} ${theme.cardBorder} rounded-xl text-center backdrop-blur-sm`}>
+                <div className={`text-xs ${theme.textMuted} mb-1`}>Time to Market</div>
+                <div className="text-xl font-bold text-indigo-400">
+                  {idea.trim() === "" ? "0 mo" : getTimeToMarket(parseInt(runway), clarity, personality)}
+                </div>
+                <div className={`text-xs ${theme.textMutedLighter} mt-1`}>MVP ready</div>
+              </div>
+            </div>
 
             {/* Tabs */}
             <div className="flex justify-center mb-8">
@@ -591,11 +591,10 @@ const getTimeToMarket = (runway: number, clarity: string, personality: string) =
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`px-6 py-2 rounded-full capitalize text-sm transition flex items-center gap-2 ${
-                      activeTab === tab.id
+                    className={`px-6 py-2 rounded-full capitalize text-sm transition flex items-center gap-2 ${activeTab === tab.id
                         ? theme.tabActive + " " + theme.text
                         : theme.tabInactive
-                    }`}
+                      }`}
                   >
                     {tab.icon}
                     {tab.id}
@@ -629,175 +628,174 @@ const getTimeToMarket = (runway: number, clarity: string, personality: string) =
               </div>
             </div>
 
-                    {/* Mobile bottom sections */}
-          <div className="md:hidden mt-8 space-y-6">
-            {result && <TeamScoresCard teams={result.teams} theme={theme} darkMode={darkMode} />}
+            {/* Mobile bottom sections */}
+            <div className="md:hidden mt-8 space-y-6">
+              {result && <TeamScoresCard teams={result.teams} theme={theme} darkMode={darkMode} />}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* RECENT ANALYSES - HORIZONTAL WITH ICON */}
+      {recentSearches && recentSearches.length > 0 && (
+        <div className={`mt-10 p-6 ${theme.cardBg} ${theme.cardBorder} backdrop-blur-xl rounded-2xl`}>
+          <div className="flex items-center gap-2 mb-4">
+            <Zap className={`w-5 h-5 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`} />
+            <h3 className={`text-lg font-semibold ${theme.text}`}>Recent Analyses</h3>
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
 
-{/* RECENT ANALYSES - HORIZONTAL WITH ICON */}
-{recentSearches && recentSearches.length > 0 && (
-  <div className={`mt-10 p-6 ${theme.cardBg} ${theme.cardBorder} backdrop-blur-xl rounded-2xl`}>
-    <div className="flex items-center gap-2 mb-4">
-      <Zap className={`w-5 h-5 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`} />
-      <h3 className={`text-lg font-semibold ${theme.text}`}>Recent Analyses</h3>
-    </div>
-    
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {recentSearches.slice(0, 4).map((item: any, i: number) => {
-        // Calculate REAL time ago
-        const searchDate = new Date(item.timestamp);
-        const now = new Date();
-        const diffMs = now.getTime() - searchDate.getTime();
-        const diffMins = Math.floor(diffMs / (1000 * 60));
-        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        
-        let timeAgo;
-        if (diffMins < 1) timeAgo = 'Just now';
-        else if (diffMins < 60) timeAgo = `${diffMins} min ago`;
-        else if (diffHours < 24) timeAgo = `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
-        else if (diffDays === 1) timeAgo = 'Yesterday';
-        else timeAgo = `${diffDays} days ago`;
-        
-        return (
-          <div
-            key={i}
-            onClick={() => setIdea(item.idea)}
-            className={`p-4 ${theme.cardBg} border ${theme.border} rounded-xl hover:border-indigo-400 transition-colors cursor-pointer group`}
-          >
-            <div className={`font-medium ${theme.text} group-hover:text-indigo-400 transition-colors mb-2 truncate`}>
-              {item.idea}
-            </div>
-            <div className={`text-sm ${theme.textMutedLighter}`}>
-              {timeAgo}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-    {recentSearches.length > 3 && (
-  <div className="mt-3 text-right">
-    <button
-      onClick={() => {
-        setRecentSearches([]);
-        localStorage.removeItem('recentSearches');
-      }}
-      className={`text-xs ${theme.textMutedLighter} hover:text-red-400 transition-colors`}
-    >
-      Clear all
-    </button>
-  </div>
-)}
-  </div>
-)}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {recentSearches.slice(0, 4).map((item: any, i: number) => {
+              // Calculate REAL time ago
+              const searchDate = new Date(item.timestamp);
+              const now = new Date();
+              const diffMs = now.getTime() - searchDate.getTime();
+              const diffMins = Math.floor(diffMs / (1000 * 60));
+              const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+              const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-        {/* Floating Chatbot Button */}
-<motion.button
-  whileHover={{ scale: 1.1 }}
-  whileTap={{ scale: 0.95 }}
-  onClick={() => setChatOpen(true)}
-  className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 shadow-2xl flex items-center justify-center z-40 hover:shadow-indigo-500/25 transition-shadow"
->
-  <MessageCircle className="w-6 h-6 text-white" />
-</motion.button>
+              let timeAgo;
+              if (diffMins < 1) timeAgo = 'Just now';
+              else if (diffMins < 60) timeAgo = `${diffMins} min ago`;
+              else if (diffHours < 24) timeAgo = `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+              else if (diffDays === 1) timeAgo = 'Yesterday';
+              else timeAgo = `${diffDays} days ago`;
 
-{/* Chatbot Panel */}
-<AnimatePresence>
-  {chatOpen && (
-    <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 20, scale: 0.95 }}
-      className="fixed bottom-24 right-6 w-80 md:w-96 z-50"
-    >
-      <div className={`${theme.cardBg} ${theme.cardBorder} rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl`}>
-        
-        {/* Header */}
-        <div className={`p-4 border-b ${theme.border} flex justify-between items-center bg-gradient-to-r from-indigo-500/10 to-violet-500/10`}>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 flex items-center justify-center">
-              <MessageCircle className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <h4 className={`text-sm font-semibold ${theme.text}`}>Founder Assistant</h4>
-              <p className={`text-xs ${theme.textMutedLighter}`}>Online • Startup Advisor</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setChatOpen(false)}
-            className={`p-1.5 rounded-full ${theme.cardBg} border ${theme.border} hover:border-indigo-400 transition-colors`}
-          >
-            <svg className={`w-4 h-4 ${theme.textMuted}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Messages */}
-        <div className="h-80 overflow-y-auto p-4 space-y-3">
-          {chatMessages.map((msg, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${
-                msg.role === 'user' 
-                  ? 'bg-indigo-500 text-white rounded-br-none' 
-                  : `${theme.cardBg} border ${theme.border} ${theme.text} rounded-bl-none`
-              }`}>
-                {msg.content}
-              </div>
-            </motion.div>
-          ))}
-          
-          {chatLoading && (
-            <div className="flex justify-start">
-              <div className={`${theme.cardBg} border ${theme.border} p-4 rounded-2xl`}>
-                <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></div>
-                  <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+              return (
+                <div
+                  key={i}
+                  onClick={() => setIdea(item.idea)}
+                  className={`p-4 ${theme.cardBg} border ${theme.border} rounded-xl hover:border-indigo-400 transition-colors cursor-pointer group`}
+                >
+                  <div className={`font-medium ${theme.text} group-hover:text-indigo-400 transition-colors mb-2 truncate`}>
+                    {item.idea}
+                  </div>
+                  <div className={`text-sm ${theme.textMutedLighter}`}>
+                    {timeAgo}
+                  </div>
                 </div>
-              </div>
+              );
+            })}
+          </div>
+          {recentSearches.length > 3 && (
+            <div className="mt-3 text-right">
+              <button
+                onClick={() => {
+                  setRecentSearches([]);
+                  localStorage.removeItem('recentSearches');
+                }}
+                className={`text-xs ${theme.textMutedLighter} hover:text-red-400 transition-colors`}
+              >
+                Clear all
+              </button>
             </div>
           )}
         </div>
+      )}
 
-        {/* Input */}
-        <div className={`p-4 border-t ${theme.border} bg-gradient-to-r from-indigo-500/5 to-violet-500/5`}>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Ask about your startup..."
-              className={`flex-1 px-4 py-2 ${theme.inputBg} border ${theme.inputBorder} rounded-xl text-sm ${theme.text} placeholder-${theme.textMutedLighter} outline-none focus:border-indigo-500/50 transition-colors`}
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={chatLoading}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-medium hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Send
-            </button>
-          </div>
-          <p className={`text-xs ${theme.textMutedLighter} mt-2 text-center`}>
-            Ask about runway, market size, competitors, fundraising, or strategy
-          </p>
-        </div>
-      </div>
-    </motion.div>
-  )}
-</AnimatePresence>
-  </div>
-);
+      {/* Floating Chatbot Button */}
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setChatOpen(true)}
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 shadow-2xl flex items-center justify-center z-40 hover:shadow-indigo-500/25 transition-shadow"
+      >
+        <MessageCircle className="w-6 h-6 text-white" />
+      </motion.button>
+
+      {/* Chatbot Panel */}
+      <AnimatePresence>
+        {chatOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed bottom-24 right-6 w-80 md:w-96 z-50"
+          >
+            <div className={`${theme.cardBg} ${theme.cardBorder} rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl`}>
+
+              {/* Header */}
+              <div className={`p-4 border-b ${theme.border} flex justify-between items-center bg-gradient-to-r from-indigo-500/10 to-violet-500/10`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 flex items-center justify-center">
+                    <MessageCircle className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h4 className={`text-sm font-semibold ${theme.text}`}>Founder Assistant</h4>
+                    <p className={`text-xs ${theme.textMutedLighter}`}>Online • Startup Advisor</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setChatOpen(false)}
+                  className={`p-1.5 rounded-full ${theme.cardBg} border ${theme.border} hover:border-indigo-400 transition-colors`}
+                >
+                  <svg className={`w-4 h-4 ${theme.textMuted}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Messages */}
+              <div className="h-80 overflow-y-auto p-4 space-y-3">
+                {chatMessages.map((msg, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${msg.role === 'user'
+                        ? 'bg-indigo-500 text-white rounded-br-none'
+                        : `${theme.cardBg} border ${theme.border} ${theme.text} rounded-bl-none`
+                      }`}>
+                      {msg.content}
+                    </div>
+                  </motion.div>
+                ))}
+
+                {chatLoading && (
+                  <div className="flex justify-start">
+                    <div className={`${theme.cardBg} border ${theme.border} p-4 rounded-2xl`}>
+                      <div className="flex gap-1">
+                        <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></div>
+                        <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Input */}
+              <div className={`p-4 border-t ${theme.border} bg-gradient-to-r from-indigo-500/5 to-violet-500/5`}>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="Ask about your startup..."
+                    className={`flex-1 px-4 py-2 ${theme.inputBg} border ${theme.inputBorder} rounded-xl text-sm ${theme.text} placeholder-${theme.textMutedLighter} outline-none focus:border-indigo-500/50 transition-colors`}
+                  />
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={chatLoading}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-medium hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Send
+                  </button>
+                </div>
+                <p className={`text-xs ${theme.textMutedLighter} mt-2 text-center`}>
+                  Ask about runway, market size, competitors, fundraising, or strategy
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 // ---------- Reusable Components (Updated with theme props) ----------
@@ -929,13 +927,13 @@ function TeamsPanel({ evaluations, theme, darkMode }: any) {
     name: string;
     score: number;
   };
-  
+
   // Sort by score for better visual
   const sortedEvals = [...evaluations].sort((a: EvaluationItem, b: EvaluationItem) => b.score - a.score);
-  
+
   // Check if any team has low score
   const hasLowScore = evaluations.some((t: EvaluationItem) => t.score < 60);
-  
+
   return (
     <div className={`${theme.cardBg} ${theme.cardBorder} backdrop-blur-xl rounded-2xl p-8`}>
       <h3 className={`text-lg font-semibold mb-6 flex items-center gap-2 ${theme.text}`}>
@@ -944,7 +942,7 @@ function TeamsPanel({ evaluations, theme, darkMode }: any) {
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {sortedEvals.map((team: EvaluationItem, index: number) => (
-          <motion.div 
+          <motion.div
             key={team.name}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -953,11 +951,10 @@ function TeamsPanel({ evaluations, theme, darkMode }: any) {
           >
             <div className="flex justify-between text-sm">
               <span className={theme.textMuted}>{team.name}</span>
-              <span className={`font-medium ${
-                team.score >= 80 ? 'text-green-400' : 
-                team.score >= 60 ? 'text-yellow-400' : 
-                'text-red-400'
-              }`}>
+              <span className={`font-medium ${team.score >= 80 ? 'text-green-400' :
+                  team.score >= 60 ? 'text-yellow-400' :
+                    'text-red-400'
+                }`}>
                 {team.score}% confirmed
               </span>
             </div>
@@ -966,11 +963,10 @@ function TeamsPanel({ evaluations, theme, darkMode }: any) {
                 initial={{ width: 0 }}
                 animate={{ width: `${team.score}%` }}
                 transition={{ duration: 1, delay: 0.2 + index * 0.1 }}
-                className={`h-2.5 rounded-full ${
-                  team.score >= 80 ? 'bg-gradient-to-r from-green-500 to-green-400' : 
-                  team.score >= 60 ? 'bg-gradient-to-r from-yellow-500 to-yellow-400' : 
-                  'bg-gradient-to-r from-red-500 to-red-400'
-                }`}
+                className={`h-2.5 rounded-full ${team.score >= 80 ? 'bg-gradient-to-r from-green-500 to-green-400' :
+                    team.score >= 60 ? 'bg-gradient-to-r from-yellow-500 to-yellow-400' :
+                      'bg-gradient-to-r from-red-500 to-red-400'
+                  }`}
               />
             </div>
           </motion.div>
@@ -1019,9 +1015,9 @@ function TeamScoresCard({ teams, theme, darkMode }: any) {
     name: string;
     score: number;
   };
-  
+
   const average = Math.round(teams.reduce((acc: number, t: TeamItem) => acc + t.score, 0) / teams.length);
-  
+
   return (
     <div className={`${theme.cardBg} ${theme.cardBorder} backdrop-blur-xl rounded-2xl p-6`}>
       <div className="flex justify-between items-center mb-4">
@@ -1035,7 +1031,7 @@ function TeamScoresCard({ teams, theme, darkMode }: any) {
       </div>
       <div className="space-y-4">
         {teams.map((team: TeamItem, index: number) => (
-          <motion.div 
+          <motion.div
             key={team.name}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -1043,11 +1039,10 @@ function TeamScoresCard({ teams, theme, darkMode }: any) {
           >
             <div className="flex justify-between text-sm mb-1">
               <span className={theme.textMuted}>{team.name}</span>
-              <span className={`${
-                team.score >= 80 ? 'text-green-400' : 
-                team.score >= 60 ? 'text-yellow-400' : 
-                'text-red-400'
-              }`}>
+              <span className={`${team.score >= 80 ? 'text-green-400' :
+                  team.score >= 60 ? 'text-yellow-400' :
+                    'text-red-400'
+                }`}>
                 {team.score}%
               </span>
             </div>
@@ -1056,11 +1051,10 @@ function TeamScoresCard({ teams, theme, darkMode }: any) {
                 initial={{ width: 0 }}
                 animate={{ width: `${team.score}%` }}
                 transition={{ duration: 1, delay: 0.1 + index * 0.1 }}
-                className={`h-2 rounded-full ${
-                  team.score >= 80 ? 'bg-gradient-to-r from-purple-500 to-indigo-500' : 
-                  team.score >= 60 ? 'bg-gradient-to-r from-indigo-500 to-blue-500' : 
-                  'bg-gradient-to-r from-gray-500 to-gray-400'
-                }`}
+                className={`h-2 rounded-full ${team.score >= 80 ? 'bg-gradient-to-r from-purple-500 to-indigo-500' :
+                    team.score >= 60 ? 'bg-gradient-to-r from-indigo-500 to-blue-500' :
+                      'bg-gradient-to-r from-gray-500 to-gray-400'
+                  }`}
               />
             </div>
           </motion.div>
@@ -1069,4 +1063,3 @@ function TeamScoresCard({ teams, theme, darkMode }: any) {
     </div>
   );
 }
-
